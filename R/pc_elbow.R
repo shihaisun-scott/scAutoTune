@@ -2,16 +2,16 @@
 #'
 #' Uses the bundled pbmc_clustered.rds sample dataset to compute
 #' variance-explained curves for PCs at different numbers of features,
-#' fits a smooth curve, and suggests an "elbow" (optimal PCs).
+#' fits a smooth LOESS curve, and suggests an "elbow" (optimal PCs).
 #'
 #' @param feature_steps Integer vector of feature counts to try.
-#'   Defaults to seq(500, 4000, by = 500).
+#'   Defaults to seq(500, 6000, by = 500).
 #' @param max_pcs Maximum number of PCs to compute.
 #' @return A list with:
 #'   \itemize{
 #'     \item pc_df: data frame of variance per PC and feature count
 #'     \item elbow_df: data frame for the chosen feature set with fitted curve
-#'     \item suggested_pcs: integer suggested PC cut
+#'     \item suggested_pcs: integer suggested PC cut (+1 adjustment)
 #'     \item plot: ggplot object of the overlap / elbow plot
 #'   }
 #' @export
@@ -70,20 +70,23 @@ run_pc_elbow_sample <- function(
   chosen_features <- max(pc_df$Features)
   elbow_df <- pc_df[pc_df$Features == chosen_features, ]
 
-  # Fit a smooth curve (GAM) to Variance ~ PC
-  # (you already load mgcv in your script)
-  # Fit smoother curve
-  gam_fit <- mgcv::gam(Variance ~ s(PC, k = 4, bs = "cs"), data = elbow_df, method = "REML")
-  elbow_df$Fitted <- as.numeric(predict(gam_fit, newdata = elbow_df))
+  # --- LOESS smoother (span = 0.2) ---
+  lo_fit <- stats::loess(Variance ~ PC, data = elbow_df, span = 0.2)
+  elbow_df$Fitted <- as.numeric(predict(lo_fit, newdata = elbow_df))
 
-  # Derivative and flattening detection
-  d1 <- diff(elbow_df$Fitted)
-  start_idx <- 3
-  search_d1 <- d1[start_idx:length(d1)]
-  ref <- median(abs(search_d1[1:3]))
-  gain_threshold <- 0.05 * ref
-  idx_flat <- which(abs(search_d1) < gain_threshold)[1] + start_idx
-  suggested_pcs <- if (!is.na(idx_flat)) idx_flat else max_pcs
+  # --- "Maximum distance from chord" elbow detection ---
+  x <- elbow_df$PC
+  y <- elbow_df$Fitted
+
+  line_vec <- c(x[length(x)] - x[1], y[length(y)] - y[1])
+  line_len <- sqrt(sum(line_vec^2))
+  distances <- abs((y[length(y)] - y[1]) * x -
+                     (x[length(x)] - x[1]) * y +
+                     x[length(x)] * y[1] - y[length(y)] * x[1]) / line_len
+
+  # Elbow = max distance + 1 adjustment
+  suggested_pcs <- x[which.max(distances)] + 1
+  suggested_pcs <- min(suggested_pcs, max_pcs)  # cap at max_pcs
 
   # 6) Overlapping elbow plot for all feature sets
   pc_df$Features <- factor(pc_df$Features)
@@ -110,7 +113,7 @@ run_pc_elbow_sample <- function(
     ) +
     ggplot2::theme_minimal()
 
-  # Optional: overlay the fitted curve for the chosen feature count
+  # Overlay the fitted curve for the chosen feature count
   overlap_plot <- overlap_plot +
     ggplot2::geom_line(
       data = elbow_df,
@@ -121,7 +124,7 @@ run_pc_elbow_sample <- function(
       colour = "black"
     )
 
-  # 7) Return results; user can manually choose PCs based on suggested_pcs
+  # 7) Return results
   list(
     pc_df = pc_df,
     elbow_df = elbow_df,
