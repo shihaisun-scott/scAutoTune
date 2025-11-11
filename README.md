@@ -10,7 +10,7 @@ resolution) for single-cell transcriptomics data.
 
 # install.packages(“devtools”)
 
-devtools::install_github(“yourusername/scAutoTune”)
+devtools::install_github(“shihaisun-scott/scAutoTune”)
 
 ## Example
 

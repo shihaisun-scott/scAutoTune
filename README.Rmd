@@ -1,11 +1,28 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+
 # scAutoTune
 
 scAutoTune helps find optimal parameters (PCs, HVGs, clustering resolution) for single-cell transcriptomics data.
 
 ## Installation
 # install.packages("devtools")
-devtools::install_github("yourusername/scAutoTune")
+devtools::install_github("shihaisun-scott/scAutoTune")
 
 ## Example
 library(scAutoTune)
 autotune_sc("example.h5ad")
+
