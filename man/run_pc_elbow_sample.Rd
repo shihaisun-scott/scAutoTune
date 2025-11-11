@@ -8,7 +8,7 @@ run_pc_elbow_sample(feature_steps = seq(500, 6000, by = 500), max_pcs = 40)
 }
 \arguments{
 \item{feature_steps}{Integer vector of feature counts to try.
-Defaults to seq(500, 4000, by = 500).}
+Defaults to seq(500, 6000, by = 500).}
 
 \item{max_pcs}{Maximum number of PCs to compute.}
 }
@@ -17,12 +17,12 @@ A list with:
 \itemize{
 \item pc_df: data frame of variance per PC and feature count
 \item elbow_df: data frame for the chosen feature set with fitted curve
-\item suggested_pcs: integer suggested PC cut
+\item suggested_pcs: integer suggested PC cut (+1 adjustment)
 \item plot: ggplot object of the overlap / elbow plot
 }
 }
 \description{
 Uses the bundled pbmc_clustered.rds sample dataset to compute
 variance-explained curves for PCs at different numbers of features,
-fits a smooth curve, and suggests an "elbow" (optimal PCs).
+fits a smooth LOESS curve, and suggests an "elbow" (optimal PCs).
 }
