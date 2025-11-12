@@ -9,8 +9,7 @@ autotune_find_features_resolution(
   n_pcs = 10,
   nfeatures_range = seq(500, 6000, by = 500),
   resolutions = seq(0.02, 1.2, by = 0.02),
-  output_csv = NULL,
-  exclude_labels = c("cytotoxic_t", "cd14_monocytes")
+  output_csv = NULL
 )
 }
 \arguments{
@@ -23,8 +22,6 @@ autotune_find_features_resolution(
 \item{resolutions}{Numeric vector of clustering resolutions to test (e.g. seq(0.02, 1.2, by = 0.02)).}
 
 \item{output_csv}{Optional path to save the results as a CSV file.}
-
-\item{exclude_labels}{Character vector of cell labels to exclude from cluster 0 (default: c("cytotoxic_t", "cd14_monocytes")).}
 }
 \value{
 A data frame with columns: nfeatures, resolution, silhouette, modularity.
