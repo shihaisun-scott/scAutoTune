@@ -2,31 +2,46 @@
 % Please edit documentation in R/find_features_resolution.R
 \name{autotune_find_features_resolution}
 \alias{autotune_find_features_resolution}
-\title{Sweep for optimal number of features and clustering resolution}
+\title{Sweep HVGs (nfeatures) and clustering resolution; pick optimum via GAM + plot}
 \usage{
 autotune_find_features_resolution(
   seurat_path,
   n_pcs = 10,
   nfeatures_range = seq(500, 6000, by = 500),
   resolutions = seq(0.02, 1.2, by = 0.02),
-  output_csv = NULL
+  k_val = 10,
+  output_csv = NULL,
+  output_pdf = NULL
 )
 }
 \arguments{
 \item{seurat_path}{Path to a Seurat .rds file.}
 
-\item{n_pcs}{Number of principal components to use. Default = 10.}
+\item{n_pcs}{Integer, number of PCs to use in neighbors/UMAP. Default 10.}
 
-\item{nfeatures_range}{Numeric vector of feature counts to test (e.g. seq(500, 6000, by = 500)).}
+\item{nfeatures_range}{Integer vector of HVG counts to evaluate.}
 
-\item{resolutions}{Numeric vector of clustering resolutions to test (e.g. seq(0.02, 1.2, by = 0.02)).}
+\item{resolutions}{Numeric vector of resolutions to evaluate.}
 
-\item{output_csv}{Optional path to save the results as a CSV file.}
+\item{k_val}{Integer, GAM degrees of freedom (per smoother). Default 10.}
+
+\item{output_csv}{Optional path to write the sweep table (.csv).}
+
+\item{output_pdf}{Optional path to write a combined figure (.pdf).}
 }
 \value{
-A data frame with columns: nfeatures, resolution, silhouette, modularity.
+A list with:
+\itemize{
+\item results_df: sweep table (nfeatures, n_pcs, resolution, silhouette, modularity)
+\item selections_df: summary table with all selection methods
+\item chosen_params: list (nfeatures, n_pcs, resolution)
+\item heatmap: ggplot heatmap (GAM-smoothed)
+\item umap_cluster_plot: ggplot UMAP colored by clusters
+\item umap_label_plot: ggplot UMAP by \code{cell_label} if present (else NULL)
+}
 }
 \description{
-Performs a grid search over variable feature counts and clustering resolutions
-to identify settings that maximize silhouette and modularity scores.
+Loads a Seurat .rds, sweeps over \code{nfeatures} and \code{resolution} using the
+given \code{n_pcs}, computes silhouette & modularity, smooths the surface with a
+GAM, selects optimal parameters, and returns plots + results.
 }
