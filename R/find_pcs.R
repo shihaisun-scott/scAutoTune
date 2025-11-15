@@ -1,100 +1,102 @@
-#' Estimate the optimal number of PCs for a Seurat object
+#' Determine optimal number of PCs using LOESS elbow detection
+#' with optional Harmony batch correction.
 #'
-#' Loads a Seurat object from an .rds file, computes variance explained curves
-#' for varying numbers of features, and uses a LOESS smoother plus
-#' maximum-distance ("elbow") method to suggest an optimal number of PCs.
+#' @param seurat_obj A Seurat object already loaded into R.
+#' @param feature_steps Vector of HVG numbers to test.
+#' @param max_pcs Maximum number of PCs to compute.
+#' @param span LOESS smoothing span.
+#' @param batch_var OPTIONAL metadata column name for batch correction
+#'        (e.g., "donor"). If provided, Harmony integration is used.
 #'
-#' @param seurat_path Path to a Seurat .rds file.
-#' @param feature_steps Integer vector of feature counts to try.
-#'   Defaults to seq(500, 6000, by = 500).
-#' @param max_pcs Maximum number of PCs to compute. Default is 40.
-#' @param span Smoothing parameter for LOESS fit. Smaller = tighter fit.
 #' @return A list containing:
 #'   \itemize{
-#'     \item pc_df: variance explained data frame for all feature counts
-#'     \item elbow_df: variance + fitted curve for chosen feature count
-#'     \item suggested_pcs: suggested number of PCs (+1 adjustment)
-#'     \item plot: ggplot object with overlapping elbow curves
+#'     \item pc_df        – all variance explained curves
+#'     \item elbow_df     – curve for chosen HVG count
+#'     \item suggested_pcs – LOESS-based elbow estimate
+#'     \item plot         – ggplot object
 #'   }
+#'
 #' @export
 autotune_find_pcs <- function(
-    seurat_path,
+    seurat_obj,
     feature_steps = seq(500, 6000, by = 500),
     max_pcs = 40,
-    span = 0.2
+    span = 0.25,
+    batch_var = NULL
 ) {
-  # --- 1. Load Seurat object ---
-  if (!file.exists(seurat_path)) stop("File not found: ", seurat_path)
-  message("Loading Seurat object: ", seurat_path)
-  obj <- readRDS(seurat_path)
-  if (!inherits(obj, "Seurat")) stop("Input file must contain a Seurat object.")
+  if (!inherits(seurat_obj, "Seurat"))
+    stop("Input must be a Seurat object")
 
-  # --- 2. Compute variance explained for each feature step ---
-  expr <- Seurat::GetAssayData(obj, slot = "counts")
+  expr <- Seurat::GetAssayData(seurat_obj, slot = "counts")
   pc_variances <- list()
+  feature_steps <- sort(unique(feature_steps))
 
-  for (f in sort(unique(feature_steps))) {
-    message("Processing ", f, " features")
+  for (f in feature_steps) {
+    message("Processing HVGs = ", f)
 
-    obj_tmp <- Seurat::CreateSeuratObject(expr)
-    obj_tmp <- Seurat::SCTransform(
-      obj_tmp,
-      verbose = FALSE,
-      return.only.var.genes = FALSE,
-      variable.features.n = f
+    obj <- Seurat::CreateSeuratObject(expr)
+
+    # ---------------------- BATCH CORRECTION ----------------------
+    if (!is.null(batch_var)) {
+      obj[[batch_var]] <- seurat_obj[[batch_var]][colnames(obj)]
+      obj[["RNA"]] <- split(obj[["RNA"]], f = obj[[batch_var]])
+    }
+
+    obj <- Seurat::SCTransform(
+      obj, variable.features.n = f,
+      return.only.var.genes = FALSE, verbose = FALSE
     )
-    obj_tmp <- Seurat::RunPCA(obj_tmp, npcs = max_pcs, verbose = FALSE)
+    obj <- Seurat::RunPCA(obj, npcs = max_pcs, verbose = FALSE)
 
-    sdev <- obj_tmp[["pca"]]@stdev
-    var_explained <- sdev^2 / sum(sdev^2)
-    pc_variances[[as.character(f)]] <- var_explained
+    if (!is.null(batch_var)) {
+      obj <- Seurat::IntegrateLayers(
+        obj,
+        method = HarmonyIntegration,
+        orig.reduction = "pca",
+        new.reduction = "harmony",
+        assay = "SCT",
+        verbose = FALSE
+      )
+      obj[["RNA"]] <- JoinLayers(obj[["RNA"]])
+      pcs <- obj[["harmony"]]@stdev
+    } else {
+      pcs <- obj[["pca"]]@stdev
+    }
+
+    pc_variances[[as.character(f)]] <- pcs^2 / sum(pcs^2)
   }
 
-  pc_df <- do.call(rbind, lapply(names(pc_variances), function(f) {
-    data.frame(
-      PC = seq_along(pc_variances[[f]]),
-      Variance = pc_variances[[f]],
-      Features = as.numeric(f)
-    )
-  }))
+  # ------------------------ DATAFRAME ------------------------
+  pc_df <- do.call(rbind,
+                   lapply(names(pc_variances), function(f){
+                     data.frame(
+                       PC = seq_along(pc_variances[[f]]),
+                       Variance = pc_variances[[f]],
+                       Features = as.numeric(f)
+                     )
+                   }))
 
-  # --- 3. Choose largest feature count for elbow detection ---
   chosen_features <- max(pc_df$Features)
   elbow_df <- pc_df[pc_df$Features == chosen_features, ]
 
-  # --- 4. Fit loess smoother and detect elbow (+1) ---
-  lo_fit <- stats::loess(Variance ~ PC, data = elbow_df, span = span)
-  elbow_df$Fitted <- as.numeric(predict(lo_fit, newdata = elbow_df))
+  lo <- stats::loess(Variance ~ PC, data = elbow_df, span = span)
+  elbow_df$Fitted <- predict(lo)
 
-  x <- elbow_df$PC
-  y <- elbow_df$Fitted
-  line_vec <- c(x[length(x)] - x[1], y[length(y)] - y[1])
-  line_len <- sqrt(sum(line_vec^2))
-  distances <- abs((y[length(y)] - y[1]) * x -
-                     (x[length(x)] - x[1]) * y +
-                     x[length(x)] * y[1] - y[length(y)] * x[1]) / line_len
-  suggested_pcs <- x[which.max(distances)] + 1
-  suggested_pcs <- min(suggested_pcs, max_pcs)
+  d <- diff(elbow_df$Fitted)
+  suggested_pcs <- which.min(d) + 1
 
-  # --- 5. Build overlap plot ---
-  pc_df$Features <- factor(pc_df$Features)
-  overlap_plot <- ggplot2::ggplot(pc_df, ggplot2::aes(
-    x = PC, y = Variance, colour = Features, group = Features
-  )) +
-    ggplot2::geom_line(alpha = 0.7) +
-    ggplot2::geom_vline(xintercept = suggested_pcs,
-                        linetype = "dashed", colour = "red") +
-    ggplot2::labs(
-      title = paste0("Elbow plots (suggested PCs: ", suggested_pcs, ")"),
-      x = "Principal Component", y = "Proportion of Variance Explained"
-    ) +
-    ggplot2::theme_minimal()
+  p <- ggplot2::ggplot(pc_df, aes(PC, Variance, color = Features)) +
+    geom_line(alpha = 0.6) +
+    geom_line(data = elbow_df, aes(PC, Fitted),
+              color = "black", linetype = "dotted") +
+    geom_vline(xintercept = suggested_pcs, color = "red") +
+    theme_minimal() +
+    labs(title = sprintf("Suggested PCs = %d", suggested_pcs))
 
-  # --- 6. Return results ---
-  list(
+  return(list(
     pc_df = pc_df,
     elbow_df = elbow_df,
     suggested_pcs = suggested_pcs,
-    plot = overlap_plot
-  )
+    plot = p
+  ))
 }
