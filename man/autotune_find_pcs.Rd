@@ -2,36 +2,39 @@
 % Please edit documentation in R/find_pcs.R
 \name{autotune_find_pcs}
 \alias{autotune_find_pcs}
-\title{Estimate the optimal number of PCs for a Seurat object}
+\title{Determine optimal number of PCs using LOESS elbow detection
+with optional Harmony batch correction.}
 \usage{
 autotune_find_pcs(
-  seurat_path,
+  seurat_obj,
   feature_steps = seq(500, 6000, by = 500),
   max_pcs = 40,
-  span = 0.2
+  span = 0.25,
+  batch_var = NULL
 )
 }
 \arguments{
-\item{seurat_path}{Path to a Seurat .rds file.}
+\item{seurat_obj}{A Seurat object already loaded into R.}
 
-\item{feature_steps}{Integer vector of feature counts to try.
-Defaults to seq(500, 6000, by = 500).}
+\item{feature_steps}{Vector of HVG numbers to test.}
 
-\item{max_pcs}{Maximum number of PCs to compute. Default is 40.}
+\item{max_pcs}{Maximum number of PCs to compute.}
 
-\item{span}{Smoothing parameter for LOESS fit. Smaller = tighter fit.}
+\item{span}{LOESS smoothing span.}
+
+\item{batch_var}{OPTIONAL metadata column name for batch correction
+(e.g., "donor"). If provided, Harmony integration is used.}
 }
 \value{
 A list containing:
 \itemize{
-\item pc_df: variance explained data frame for all feature counts
-\item elbow_df: variance + fitted curve for chosen feature count
-\item suggested_pcs: suggested number of PCs (+1 adjustment)
-\item plot: ggplot object with overlapping elbow curves
+\item pc_df        – all variance explained curves
+\item elbow_df     – curve for chosen HVG count
+\item suggested_pcs – LOESS-based elbow estimate
+\item plot         – ggplot object
 }
 }
 \description{
-Loads a Seurat object from an .rds file, computes variance explained curves
-for varying numbers of features, and uses a LOESS smoother plus
-maximum-distance ("elbow") method to suggest an optimal number of PCs.
+Determine optimal number of PCs using LOESS elbow detection
+with optional Harmony batch correction.
 }

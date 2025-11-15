@@ -2,46 +2,46 @@
 % Please edit documentation in R/find_features_resolution.R
 \name{autotune_find_features_resolution}
 \alias{autotune_find_features_resolution}
-\title{Sweep HVGs (nfeatures) and clustering resolution; pick optimum via GAM + plot}
+\title{HVG × resolution sweep with optional Harmony batch correction + GAM optimization.}
 \usage{
 autotune_find_features_resolution(
-  seurat_path,
+  seurat_obj,
   n_pcs = 10,
   nfeatures_range = seq(500, 6000, by = 500),
   resolutions = seq(0.02, 1.2, by = 0.02),
   k_val = 10,
+  batch_var = NULL,
   output_csv = NULL,
   output_pdf = NULL
 )
 }
 \arguments{
-\item{seurat_path}{Path to a Seurat .rds file.}
+\item{seurat_obj}{A Seurat object already loaded in R.}
 
-\item{n_pcs}{Integer, number of PCs to use in neighbors/UMAP. Default 10.}
+\item{n_pcs}{Number of PCs to use in reduction.}
 
-\item{nfeatures_range}{Integer vector of HVG counts to evaluate.}
+\item{nfeatures_range}{Range of HVGs to sweep.}
 
-\item{resolutions}{Numeric vector of resolutions to evaluate.}
+\item{resolutions}{Clustering resolutions to sweep.}
 
-\item{k_val}{Integer, GAM degrees of freedom (per smoother). Default 10.}
+\item{k_val}{GAM smoothing df.}
 
-\item{output_csv}{Optional path to write the sweep table (.csv).}
+\item{batch_var}{OPTIONAL metadata column (e.g., "donor") for Harmony integration.}
 
-\item{output_pdf}{Optional path to write a combined figure (.pdf).}
+\item{output_csv}{Optional CSV file path.}
+
+\item{output_pdf}{Optional PDF path for heatmap + UMAP.}
 }
 \value{
-A list with:
+A list containing:
 \itemize{
-\item results_df: sweep table (nfeatures, n_pcs, resolution, silhouette, modularity)
-\item selections_df: summary table with all selection methods
-\item chosen_params: list (nfeatures, n_pcs, resolution)
-\item heatmap: ggplot heatmap (GAM-smoothed)
-\item umap_cluster_plot: ggplot UMAP colored by clusters
-\item umap_label_plot: ggplot UMAP by \code{cell_label} if present (else NULL)
+\item results_df
+\item chosen_params
+\item heatmap
+\item umap_cluster_plot
+\item umap_label_plot
 }
 }
 \description{
-Loads a Seurat .rds, sweeps over \code{nfeatures} and \code{resolution} using the
-given \code{n_pcs}, computes silhouette & modularity, smooths the surface with a
-GAM, selects optimal parameters, and returns plots + results.
+HVG × resolution sweep with optional Harmony batch correction + GAM optimization.
 }
