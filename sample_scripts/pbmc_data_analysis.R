@@ -4,11 +4,17 @@
 library(scAutoTune)
 
 # load the file
-obj <- readRDS("pbmc_cluster0.rds")
+obj <- readRDS("../inst/sample_data/pbmc_cluster0.rds")
 
 # analyse using scAutoTune
 # 1. find the optimum number of pcs
-pc_out <- autotune_find_pcs(obj)
+#feature_steps <- seq(1000, 3000, by = 1000)
+feature_steps = seq(500, 6000, by = 500)
+max_pcs <- 20
+pc_out <- autotune_find_pcs(obj,
+                            feature_steps = feature_steps,
+                            max_pcs = max_pcs,
+                            span = span)
 pc_out$suggested_pcs
 pc_out$plot
 

@@ -2,12 +2,14 @@ Package: scAutoTune
 Title: Automatic Seurat Parameter Optimization
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
+    person("Shi", "Sun", , "shihaisun.scott@gmail.com", role = c("aut", "cre"))
 Description: Find the optimum number of PCs, number of variable features, and clustering resolution for downstream analysis.
 Imports:
-    Seurat,
+    Seurat (>= 5.0.0),
+    SeuratObject,
     mgcv,
-    ggplot2
+    ggplot2,
+    stats
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

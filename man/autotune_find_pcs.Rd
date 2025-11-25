@@ -2,14 +2,13 @@
 % Please edit documentation in R/find_pcs.R
 \name{autotune_find_pcs}
 \alias{autotune_find_pcs}
-\title{Determine optimal number of PCs using LOESS elbow detection
-with optional Harmony batch correction.}
+\title{Determine variance explained per PC across HVG settings
+and detect elbows per HVG curve (no smoothing).}
 \usage{
 autotune_find_pcs(
   seurat_obj,
   feature_steps = seq(500, 6000, by = 500),
   max_pcs = 40,
-  span = 0.25,
   batch_var = NULL
 )
 }
@@ -20,21 +19,30 @@ autotune_find_pcs(
 
 \item{max_pcs}{Maximum number of PCs to compute.}
 
-\item{span}{LOESS smoothing span.}
+\item{batch_var}{OPTIONAL metadata column name for batch splitting
+(e.g., "donor"). If provided, the RNA assay is split by this
+variable prior to SCTransform.}
 
-\item{batch_var}{OPTIONAL metadata column name for batch correction
-(e.g., "donor"). If provided, Harmony integration is used.}
+\item{span}{Ignored (kept for backwards compatibility; no smoothing used).}
 }
 \value{
 A list containing:
 \itemize{
-\item pc_df        – all variance explained curves
-\item elbow_df     – curve for chosen HVG count
-\item suggested_pcs – LOESS-based elbow estimate
-\item plot         – ggplot object
+\item pc_df         – all variance explained curves
+(one row per PC per HVG)
+\item elbow_df      – one row per HVG, with the elbow PC and variance
+\item suggested_pcs – median elbow across HVG curves (not plotted)
+\item plot          – ggplot object with overlapping curves and
+stacked elbow lines
 }
 }
 \description{
-Determine optimal number of PCs using LOESS elbow detection
-with optional Harmony batch correction.
+Workflow (for each \code{feature_steps} value):
+\enumerate{
+\item Optionally split RNA assay by batch (\code{batch_var})
+\item SCTransform with given number of variable features
+\item Run PCA
+\item Compute variance explained per PC
+\item Detect elbow on each variance curve (geometric method)
+}
 }
