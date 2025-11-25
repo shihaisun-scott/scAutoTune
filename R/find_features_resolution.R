@@ -273,9 +273,9 @@ autotune_find_features_resolution <- function(
   umap_label_plot <- NULL
   if ("cell_label" %in% colnames(seurat_obj@meta.data)) {
     obj_final$cell_label <- seurat_obj$cell_label[colnames(obj_final)]
-    umap_label_plot <- DimPlot(obj_final, group.by = "cell_label") +
-      theme_minimal() +
-      labs(title = "UMAP — true labels")
+    umap_label_plot <- Seurat::DimPlot(obj_final, group.by = "cell_label") +
+      ggplot2::theme_minimal() +
+      ggplot2::labs(title = "UMAP — true labels")
   }
 
   # PDF OUTPUT

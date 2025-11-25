@@ -13,8 +13,7 @@ feature_steps = seq(500, 6000, by = 500)
 max_pcs <- 20
 pc_out <- autotune_find_pcs(obj,
                             feature_steps = feature_steps,
-                            max_pcs = max_pcs,
-                            span = span)
+                            max_pcs = max_pcs)
 pc_out$suggested_pcs
 pc_out$plot
 
