@@ -14,4 +14,4 @@ devtools::install_github(“shihaisun-scott/scAutoTune”)
 
 ## Example
 
-library(scAutoTune) autotune_sc(“example.h5ad”)
+library(scAutoTune)
