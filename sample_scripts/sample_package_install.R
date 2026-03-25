@@ -1,4 +1,4 @@
-cran_pkgs <- c(
+install.packages(c(
   "Seurat",
   "R.utils",
   "ggplot2",
@@ -10,24 +10,14 @@ cran_pkgs <- c(
   "gridExtra",
   "Matrix",
   "devtools",
-  "harmony",
-  "BiocManager"
-)
+	"harmony",
+  "BiocManager,"
+  "Remotes"))
 
-for (pkg in cran_pkgs) {
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    install.packages(pkg)
-  }
-}
+BiocManager::install("glmGamPoi")
+devtools::install_github("satijalab/seurat-wrappers")
+devtools::install_github("shihaisun-scott/scAutoTune")
 
-if (!requireNamespace("glmGamPoi", quietly = TRUE)) {
-  BiocManager::install("glmGamPoi")
-}
-
-if (!requireNamespace("SeuratWrappers", quietly = TRUE)) {
-  devtools::install_github("satijalab/seurat-wrappers")
-}
-
-if (!requireNamespace("scAutoTune", quietly = TRUE)) {
-  devtools::install_github("shihaisun-scott/scAutoTune")
-}
+# check if installed
+library(Seurat)
+library(scAutoTune)
