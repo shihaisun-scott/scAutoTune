@@ -15,3 +15,7 @@ devtools::install_github(“shihaisun-scott/scAutoTune”)
 ## Example
 
 library(scAutoTune)
+
+
+## Sample data
+Two sets of data 
