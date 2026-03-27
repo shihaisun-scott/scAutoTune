@@ -28,6 +28,12 @@ library(Seurat)
 ```
 
 # Main Functions
+autotune_find_pcs()
+- calculates variance explained per PC across multiple HVG settings
+- identifies optimum number of PCs via elbow plot
+
+autotune_find_features_resolution()
+- 
 
 # Contact
 Shi Hai Sun
