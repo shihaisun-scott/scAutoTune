@@ -27,14 +27,28 @@ library(scAutoTune)
 library(Seurat)
 ```
 
-# Main Functions
+## Main Functions
 autotune_find_pcs()
 - calculates variance explained per PC across multiple HVG settings
 - identifies optimum number of PCs via elbow plot
 
 autotune_find_features_resolution()
-- 
+- Performs an HVG × resolution sweep, evaluates clustering performance, fits a GAM-smoothed surface, and returns optimized parameters.
 
-# Contact
+## Workflow overview
+1. Load libraries
+2. Load data
+3. Estimate number of PCs with autotune_find_pcs()
+4. Perform sweep with autotune_find_features_resolution()
+5. Downstream analyses
+
+See 
+- .../sample_scripts for example code
+- .../inst/sample_data for sample data to use
+
+## Citation
+Please cite original paper -- [Single-Cell Transcriptomic Analysis of Macaque LGN Neurons Reveals Novel Subpopulations](https://doi.org/10.1007/s12035-025-05361-y)
+
+## Contact
 Shi Hai Sun
 shihaisun.scott@gmail.com
