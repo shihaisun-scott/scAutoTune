@@ -21,3 +21,9 @@ Install from GitHub:
 ```r
 # install.packages("devtools")
 devtools::install_github("shihaisun-scott/scAutoTune")
+
+# load the package (assuming Seurat is already installed)
+library(scAutoTune)
+library(Seurat)
+```
+
