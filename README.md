@@ -27,3 +27,8 @@ library(scAutoTune)
 library(Seurat)
 ```
 
+# Main Functions
+
+# Contact
+Shi Hai Sun
+shihaisun.scott@gmail.com
