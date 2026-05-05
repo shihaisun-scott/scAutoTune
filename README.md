@@ -1,6 +1,6 @@
 # scAutoTune
 
-[![DOI](https://img.shields.io/badge/DOI-10.5281/zenodo.20041503-blue)](https://doi.org/10.5281/zenodo.20041503)
+[![DOI](https://zenodo.org/badge/1079959060.svg)](https://doi.org/10.5281/zenodo.20041501)
 
 **scAutoTune** is an R package for automated optimization of feature selection and clustering parameters in **Seurat**-based single-cell RNA-seq analysis.
 
