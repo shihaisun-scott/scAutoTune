@@ -6,7 +6,7 @@ library(ggplot2)
 default_pcs <- 30
 
 # pbmc
-obj_pbmc <- readRDS("pbmc_cluster0.rds")
+obj_pbmc <- readRDS("data/pbmc_cluster0.rds")
 
 obj_default <- obj_pbmc
 
