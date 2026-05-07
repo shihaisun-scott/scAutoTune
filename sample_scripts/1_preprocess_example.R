@@ -2,6 +2,7 @@
 # this is just an example script for Seurat object construction and should not be treated as universally optimal
 # preprocessing choices must be tailored to the specific dataset
 # Note: this script does not produce any output, and is only treated as an example
+# Skip this script if using the example datasets provided in this repo
 
 
 library(Seurat)
